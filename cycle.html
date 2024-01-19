@@ -1,0 +1,145 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['user'])) {
+  header('Location: login.php');
+}
+
+include "koneksi.php";
+
+$query = "SELECT * FROM hp WHERE kode_hp='$_GET[id]'";
+$result = mysqli_query($koneksi, $query);
+$data = mysqli_fetch_array($result);
+
+$username = mysqli_query($koneksi, "SELECT * FROM datapengguna WHERE username='$_SESSION[user]'");
+$saya = mysqli_fetch_array($username);
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - Beautiful Sleek Checkout Page</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+  <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Josefin+Sans:300,400,600,700|Open+Sans:400,600'>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/simple-line-icons/2.4.1/css/simple-line-icons.min.css'>
+  <link rel="stylesheet" href="css/checkout1.css">
+</head>
+<body>
+
+<!-- partial:index.partial.html -->
+<header>
+  <div class="container">
+    <div class="navigation">
+      <div class="logo">
+        <i class="icon icon-basket"></i>DoctHandphone
+      </div>
+      <div class="secure">
+        <i class="icon icon-shield"></i>
+        <span>Secure Checkout</span>
+      </div>
+    </div>
+    <div class="notification">
+      Complete Your Purchase
+    </div>
+  </div>
+</header>
+<section class="content">
+  <div class="container"></div>
+  <div class="details shadow">
+    <div class="details__item">
+      <div class="item__image">
+        <img src="img/<?= $data['foto']; ?>">
+      </div>
+      <div class="item__details">
+        <div class="item__title">
+          <?= $data['nama_hp']; ?>
+        </div>
+        <div class="item__price">
+          <?php echo number_format($data['harga']); ?>
+        </div>
+        <div class="item__quantity">
+          Quantity: 1
+        </div>
+        <div class="item__description">
+          <ul>
+            <li><?php echo $data['deskripsi']; ?></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="discount"></div>
+  <div class="container">
+    <div class="payment">
+      <div class="payment__title">
+        Payment Method
+      </div>
+      <div class="payment__types">
+        <div class="payment__type payment__type--cc active">
+          <i class="icon icon-credit-card"></i>Credit Card
+        </div>
+        <div class="payment__type payment__type--paypal">
+          <i class="icon icon-paypal"></i>Paypal
+        </div>
+        <div class="payment__type payment__type--paypal">
+          <i class="icon icon-wallet"></i>SEPA
+        </div>
+        <div class="payment__type payment__type--paypal">
+          <i class="icon icon-note"></i>Invoice
+        </div>
+      </div>
+      <div class="payment__info">
+        <div class="payment__cc">
+          <div class="payment__title">
+            <i class="icon icon-user"></i>Personal Information
+          </div>
+          <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+            <div class="form__cc">
+              <div class="row">
+                <div class="field">
+                  <div class="title">Nama Lengkap</div>
+                  <input type="text" class="input txt text-validated" value="<?= $saya['nama']; ?>">
+                </div>
+              </div>
+              <div class="field">
+                <div class="title">Alamat</div>
+                <input type="text" class="input txt text-validated" placeholder="Isi Alamat Anda...">
+              </div>
+              <div class="field">
+                <div class="title">No Hp</div>
+                <input type="text" class="input txt text-validated" placeholder="Isi No Hp...">
+              </div>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="actions">
+      <a href="cetak.php?id=<?= $data['kode_hp'] ?>" class="btn action__submit" name="order">Place your Order
+        <i class="icon icon-arrow-right-circle"></i>
+      </a>
+      <a href="web2.php" class="backBtn">Go Back to Shop</a>
+    </div>
+  </section>
+</div>
+<!-- partial -->
+
+<?php
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['order'])) {
+  $id_pengguna = $_SESSION['id'];
+  $total = $data['harga'];
+  $query = mysqli_query($koneksi, "INSERT INTO transaksi (tgl_beli, total_harga) VALUES ('" . date("Y-m-d") . "', $total)");
+  $id = mysqli_insert_id($koneksi);
+  $_SESSION['idtran'] = $id;
+
+  echo
+  "<script>alert('Berhasil Belanja'); window.location.href = 'cetak.php?id=$id';</script>";
+}
+?>
+
+</body>
+</html>
